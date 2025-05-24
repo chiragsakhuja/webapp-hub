@@ -21,6 +21,14 @@ const tools = ref<Tool[]>([
     path: '/ab-workout',
     status: 'available'
   },
+  {
+    id: 'random-countdown',
+    name: 'Random Countdown',
+    description: 'Set a random countdown timer between min and max seconds',
+    icon: '⏰',
+    path: '/random-countdown',
+    status: 'available'
+  },
   // Add your tools here - examples for demonstration structure
   // {
   //   id: 'calculator',

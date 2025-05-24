@@ -15,6 +15,11 @@ const router = createRouter({
       name: 'ab-workout',
       component: () => import('../components/tools/AbWorkout.vue'),
     },
+    {
+      path: '/random-countdown',
+      name: 'random-countdown',
+      component: () => import('../components/tools/RandomCountdown.vue'),
+    },
     
     // Catch-all route for 404
     {
