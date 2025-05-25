@@ -10,6 +10,7 @@ const showBell = ref<boolean>(false)
 
 let timerId: number | null = null
 const audioContext = ref<AudioContext | null>(null)
+const wakeLock = ref<WakeLockSentinel | null>(null)
 let alarmTimeout: number | null = null
 
 onMounted(() => {
@@ -25,6 +26,7 @@ onUnmounted(() => {
   if (alarmTimeout) {
     clearTimeout(alarmTimeout)
   }
+  releaseWakeLock()
 })
 
 const initializeAudio = async () => {
@@ -32,6 +34,25 @@ const initializeAudio = async () => {
     audioContext.value = new (window.AudioContext || (window as any).webkitAudioContext)()
   } catch (error) {
     console.warn('Audio context not supported:', error)
+  }
+}
+
+const requestWakeLock = async () => {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock.value = await navigator.wakeLock.request('screen')
+      console.log('Screen wake lock acquired')
+    }
+  } catch (error) {
+    console.warn('Wake lock not supported or failed:', error)
+  }
+}
+
+const releaseWakeLock = async () => {
+  if (wakeLock.value) {
+    await wakeLock.value.release()
+    wakeLock.value = null
+    console.log('Screen wake lock released')
   }
 }
 
@@ -112,7 +133,7 @@ const startRandomCountdown = () => {
   }, randomTime * 1000)
 }
 
-const handleStart = () => {
+const handleStart = async () => {
   if (!isRunning.value) {
     const minTime = minTimeInput.value
     const maxTime = maxTimeInput.value
@@ -124,6 +145,7 @@ const handleStart = () => {
 
     message.value = "Timer is running..."
     isRunning.value = true
+    await requestWakeLock()
     startRandomCountdown()
   } else {
     // Stop the timer
@@ -138,6 +160,7 @@ const handleStart = () => {
     showBell.value = false
     message.value = "Timer stopped."
     isRunning.value = false
+    releaseWakeLock()
   }
 }
 </script>
