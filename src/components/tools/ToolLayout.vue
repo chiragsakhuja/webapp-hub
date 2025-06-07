@@ -15,7 +15,7 @@ defineProps<Props>()
     <div class="tool-header">
       <RouterLink to="/" class="back-btn">
         <span class="back-icon">←</span>
-        <span>Back to Tools</span>
+        <span>Back to Apps</span>
       </RouterLink>
       
       <div class="tool-info">

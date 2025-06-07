@@ -166,8 +166,8 @@ const startTimer = () => {
       if (timeLeft.value > 0) {
         timeLeft.value--
         
-        // Play warning sound at 5 seconds
-        if (timeLeft.value === 5) {
+        // Play warning sound at 5 seconds only for exercises
+        if (timeLeft.value === 5 && currentExercise.value.type === 'exercise') {
           playWarningSound()
         }
       } else {
