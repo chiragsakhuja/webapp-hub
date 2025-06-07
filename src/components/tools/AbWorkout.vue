@@ -56,46 +56,127 @@ const overallProgressPercent = computed(() => {
   return Math.min(overallProgress, 100)
 })
 
-// Methods
-const initializeAudio = async () => {
-  try {
-    audioContext.value = new (window.AudioContext || (window as any).webkitAudioContext)()
-  } catch (error) {
-    console.warn('Audio context not supported:', error)
+// Audio clips mapping and cache
+const soundFiles: Record<string, string> = {
+  start: new URL('@/assets/sounds/ab-workout-start.mp3', import.meta.url).href,
+  rest: new URL('@/assets/sounds/ab-workout-rest.mp3', import.meta.url).href,
+  complete: new URL('@/assets/sounds/ab-workout-complete.mp3', import.meta.url).href,
+}
+// Store both audio element and duration
+const audioElements: Record<string, { audio: HTMLAudioElement, duration: number }> = {}
+
+// For scheduling end sound
+let endSoundTimeout: ReturnType<typeof setTimeout> | null = null
+// For scheduling next exercise sound (START/REST)
+let nextExerciseSoundTimeout: ReturnType<typeof setTimeout> | null = null
+
+const preloadAudio = () => {
+  Object.entries(soundFiles).forEach(([name, url]) => {
+    const audio = new Audio(url)
+    // Preload and get duration
+    audio.addEventListener('loadedmetadata', () => {
+      audioElements[name] = { audio, duration: audio.duration }
+    })
+    // Fallback if loadedmetadata doesn't fire (e.g. cached)
+    audio.oncanplaythrough = () => {
+      if (!audioElements[name]) {
+        audioElements[name] = { audio, duration: audio.duration }
+      }
+    }
+    audio.load()
+  })
+}
+
+const playSound = (soundName: string) => {
+  const entry = audioElements[soundName]
+  if (entry) {
+    entry.audio.currentTime = 0
+    entry.audio.play()
   }
 }
 
-const playSound = (frequency: number, duration = 200) => {
-  if (!audioContext.value) return
-  
-  const oscillator = audioContext.value.createOscillator()
-  const gainNode = audioContext.value.createGain()
-  
-  oscillator.connect(gainNode)
-  gainNode.connect(audioContext.value.destination)
-  
-  oscillator.frequency.value = frequency
-  oscillator.type = 'sine'
-  
-  gainNode.gain.setValueAtTime(0, audioContext.value.currentTime)
-  gainNode.gain.linearRampToValueAtTime(0.3, audioContext.value.currentTime + 0.01)
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.value.currentTime + duration / 1000)
-  
-  oscillator.start(audioContext.value.currentTime)
-  oscillator.stop(audioContext.value.currentTime + duration / 1000)
-}
-
-const playStartSound = () => {
-  playSound(800, 150)
-  setTimeout(() => playSound(800, 150), 200)
+// Helper to play start sound and then run a callback after it ends
+const playStartSoundAndThen = (cb: () => void) => {
+  const entry = audioElements['start']
+  if (entry && entry.duration > 0) {
+    playSound('start')
+    setTimeout(cb, entry.duration * 1000)
+  } else {
+    playSound('start')
+    setTimeout(cb, 500) // fallback
+  }
 }
 
 const playWarningSound = () => {
-  playSound(600, 300)
+  // Warning sound removed - no longer play anything
 }
 
 const playEndSound = () => {
-  playSound(400, 500)
+  // End sound removed - no longer play anything
+}
+
+const clearEndSoundTimeout = () => {
+  if (endSoundTimeout) {
+    clearTimeout(endSoundTimeout)
+    endSoundTimeout = null
+  }
+}
+
+const clearNextExerciseSoundTimeout = () => {
+  if (nextExerciseSoundTimeout) {
+    clearTimeout(nextExerciseSoundTimeout)
+    nextExerciseSoundTimeout = null
+  }
+}
+
+const getNextExercise = () => {
+  const nextIndex = currentExerciseIndex.value + 1
+  let nextRound = currentRound.value
+  let nextExerciseIndex = nextIndex
+  
+  if (nextIndex >= exercises.length) {
+    nextRound = currentRound.value + 1
+    nextExerciseIndex = 0
+  }
+  
+  if (nextRound > totalRounds.value) {
+    return null // No more exercises
+  }
+  
+  return {
+    exercise: exercises[nextExerciseIndex],
+    round: nextRound,
+    index: nextExerciseIndex
+  }
+}
+
+const scheduleNextExerciseSound = () => {
+  clearNextExerciseSoundTimeout()
+  
+  const nextInfo = getNextExercise()
+  if (!nextInfo) return // No more exercises
+  
+  const nextExercise = nextInfo.exercise
+  const soundName = nextExercise.type === 'exercise' ? 'start' : 'rest'
+  const soundEntry = audioElements[soundName]
+  
+  if (!soundEntry) return
+  
+  const soundDuration = soundEntry.duration || 3
+  const timeToPlaySound = timeLeft.value - soundDuration
+  
+  if (timeToPlaySound > 0) {
+    nextExerciseSoundTimeout = setTimeout(() => {
+      playSound(soundName)
+    }, timeToPlaySound * 1000)
+  } else if (timeLeft.value > 1) {
+    // If sound duration is longer than remaining time, play immediately
+    playSound(soundName)
+  }
+}
+
+const scheduleEndSound = () => {
+  // End sound removed - no longer schedule anything
 }
 
 const requestWakeLock = async () => {
@@ -124,25 +205,23 @@ const formatTime = (seconds: number) => {
 }
 
 const nextExercise = () => {
+  clearEndSoundTimeout()
+  clearNextExerciseSoundTimeout()
   currentExerciseIndex.value++
-  
   // Check if we've completed all exercises in current round
   if (currentExerciseIndex.value >= exercises.length) {
     currentRound.value++
-    
     // Check if we've completed all the rounds
     if (currentRound.value > totalRounds.value) {
       completeWorkout()
       return
     }
-    
     // Start next round
     currentExerciseIndex.value = 0
   }
-  
-  // Set up next exercise
+  // Set up next exercise - start immediately, no sound delay
   timeLeft.value = currentExercise.value.duration
-  playStartSound()
+  scheduleNextExerciseSound()
 }
 
 const completeWorkout = () => {
@@ -152,27 +231,23 @@ const completeWorkout = () => {
     clearInterval(timer.value)
     timer.value = null
   }
+  clearEndSoundTimeout()
+  clearNextExerciseSoundTimeout()
   releaseWakeLock()
-  
-  // Play completion sound sequence
-  setTimeout(() => playSound(800, 200), 0)
-  setTimeout(() => playSound(1000, 200), 300)
-  setTimeout(() => playSound(1200, 400), 600)
+  // Play completion sound
+  playSound('complete')
 }
+
+let resumeAfterStartSound = false
 
 const startTimer = () => {
   timer.value = setInterval(() => {
     if (!isPaused.value) {
       if (timeLeft.value > 0) {
         timeLeft.value--
-        
-        // Play warning sound at 5 seconds only for exercises
-        if (timeLeft.value === 5 && currentExercise.value.type === 'exercise') {
-          playWarningSound()
-        }
+        // Warning sound removed - no longer play at 5 seconds
       } else {
         // Exercise completed
-        playEndSound()
         nextExercise()
       }
     }
@@ -186,14 +261,31 @@ const startWorkout = async () => {
   currentRound.value = 1
   currentExerciseIndex.value = 0
   timeLeft.value = currentExercise.value.duration
-  
   await requestWakeLock()
-  playStartSound()
-  startTimer()
+  // Play start sound, then start timer
+  playStartSoundAndThen(() => {
+    scheduleNextExerciseSound()
+    startTimer()
+  })
 }
 
 const pauseWorkout = () => {
   isPaused.value = !isPaused.value
+  if (!isPaused.value && isRunning.value && !isFinished.value) {
+    // Resuming: play start sound, then resume timer
+    if (timer.value) {
+      clearInterval(timer.value)
+      timer.value = null
+    }
+    playStartSoundAndThen(() => {
+      scheduleNextExerciseSound()
+      startTimer()
+    })
+  } else {
+    // Pausing: clear any scheduled sounds
+    clearEndSoundTimeout()
+    clearNextExerciseSoundTimeout()
+  }
 }
 
 const resetWorkout = () => {
@@ -209,12 +301,14 @@ const resetWorkout = () => {
     timer.value = null
   }
   
+  clearEndSoundTimeout()
+  clearNextExerciseSoundTimeout()
   releaseWakeLock()
 }
 
 // Lifecycle hooks
 onMounted(() => {
-  initializeAudio()
+  preloadAudio()
 })
 
 onBeforeUnmount(() => {
