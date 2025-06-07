@@ -20,32 +20,39 @@ html, body {
   height: 100vh;
   width: 100vw;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow: hidden; /* Prevent all scrolling */
   margin: 0;
   padding: 0;
+  position: fixed; /* Lock the viewport */
+  top: 0;
+  left: 0;
 }
 
 #app {
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for modern browsers */
+  height: -webkit-fill-available; /* Safari fallback */
   width: 100vw;
-  min-height: 100vh;
-  min-height: 100dvh; /* Dynamic viewport height for modern browsers */
-  min-height: -webkit-fill-available; /* Safari fallback */
+  overflow: hidden; /* Prevent scrolling */
   margin: 0;
   padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 .app {
   width: 100vw; /* Full viewport width */
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
+  height: 100vh;
+  height: 100dvh;
+  height: -webkit-fill-available;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-attachment: fixed; /* Keep gradient fixed during scroll */
   color: white;
   position: relative;
   margin: 0;
   padding: 0;
+  overflow: hidden; /* Prevent internal scrolling */
 }
 
 /* Common button styles */
@@ -124,11 +131,12 @@ html, body {
   }
 }
 
-/* iPhone specific adjustments */
-@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-  .app {
-    min-height: calc(100vh - 60px);
-    padding-bottom: 60px;
+/* Additional mobile fixes */
+@media (max-width: 768px) {
+  html, body, #app, .app {
+    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height on mobile */
+    overflow: hidden;
   }
 }
 </style>
