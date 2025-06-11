@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import ToolLayout from './ToolLayout.vue'
+import { OpenInNewIcon } from 'mdi-vue3'
 
 interface Exercise {
   name: string
@@ -19,6 +20,24 @@ const isFinished = ref(false)
 const timer = ref<number | null>(null)
 const wakeLock = ref<WakeLockSentinel | null>(null)
 const audioContext = ref<AudioContext | null>(null)
+
+// Mini window state
+const isMiniMode = ref(false)
+const isMobile = ref(false)
+
+// Check if this is a mini window and mobile detection
+onMounted(() => {
+  // Check if opened as mini window
+  const urlParams = new URLSearchParams(window.location.search)
+  isMiniMode.value = urlParams.has('mini')
+  
+  // Mobile detection
+  isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && window.innerWidth < 768)
+  
+  // Preload audio files
+  preloadAudio()
+})
 
 // Workout routine (repeated 3 times)
 const exercises: Exercise[] = [
@@ -306,11 +325,22 @@ const resetWorkout = () => {
   releaseWakeLock()
 }
 
-// Lifecycle hooks
-onMounted(() => {
-  preloadAudio()
-})
+const openMiniWindow = () => {
+  const currentUrl = window.location.href
+  const miniUrl = currentUrl.includes('?') ? `${currentUrl}&mini=true` : `${currentUrl}?mini=true`
+  
+  const miniWindow = window.open(
+    miniUrl,
+    'AbWorkoutMini',
+    'width=400,height=500,resizable=yes,scrollbars=no,status=no,menubar=no,toolbar=no,location=no'
+  )
+  
+  if (miniWindow) {
+    miniWindow.focus()
+  }
+}
 
+// Lifecycle hooks
 onBeforeUnmount(() => {
   releaseWakeLock()
   if (timer.value) {
@@ -320,8 +350,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <ToolLayout title="Ab Workout Timer" description="A guided 3-round ab workout with audio cues and progress tracking">
-    <div class="workout-content">
+  <ToolLayout title="Ab Workout Timer">
+    <div class="workout-content" :class="{ 'mini-mode': isMiniMode }">
       <!-- Header -->
       <div class="header">
         <div class="round-indicator">
@@ -358,9 +388,20 @@ onBeforeUnmount(() => {
 
       <!-- Controls -->
       <div class="controls">
-        <button v-if="!isRunning && !isFinished" @click="startWorkout" class="start-btn btn-primary">
-          Start Workout
-        </button>
+        <div v-if="!isRunning && !isFinished" class="control-group">
+          <button @click="startWorkout" class="start-btn btn-primary">
+            Start Workout
+          </button>
+          <!-- Pop-out button (only show in main window and not on mobile) -->
+          <button 
+            v-if="!isMiniMode && !isMobile" 
+            @click="openMiniWindow" 
+            class="popout-btn"
+            title="Open in mini window"
+          >
+            <OpenInNewIcon />
+          </button>
+        </div>
         
         <button v-if="isRunning" @click="pauseWorkout" class="pause-btn btn-secondary">
           {{ isPaused ? 'Resume' : 'Pause' }}
@@ -391,6 +432,133 @@ onBeforeUnmount(() => {
   max-width: 500px;
   margin: 0 auto;
   text-align: center;
+  position: relative;
+}
+
+.popout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 10px;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.popout-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: white;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.control-group .start-btn {
+  flex: 1;
+  max-width: 250px;
+}
+
+/* Mini Mode Styles */
+.mini-mode {
+  max-width: 100%;
+  padding: 5px;
+  font-size: 0.9rem;
+}
+
+.mini-mode .control-group .start-btn {
+  max-width: 180px;
+}
+
+.mini-mode .popout-btn {
+  padding: 10px;
+  font-size: 1rem;
+  min-width: 45px;
+}
+
+.mini-mode .popout-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.mini-mode .header {
+  margin-bottom: 10px;
+}
+
+.mini-mode .round-indicator {
+  font-size: 0.9rem;
+  padding: 4px 8px;
+}
+
+.mini-mode .exercise-name {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  line-height: 1.1;
+}
+
+.mini-mode .timer-display {
+  font-size: 3.5rem;
+  margin-bottom: 15px;
+}
+
+.mini-mode .progress-section {
+  margin-bottom: 10px;
+}
+
+.mini-mode .progress-item {
+  margin-bottom: 8px;
+}
+
+.mini-mode .progress-label {
+  font-size: 0.75rem;
+  margin-bottom: 3px;
+}
+
+.mini-mode .progress-bar {
+  height: 6px;
+}
+
+.mini-mode .overall-progress {
+  height: 4px;
+}
+
+.mini-mode .controls {
+  padding-bottom: 10px;
+}
+
+.mini-mode .start-btn,
+.mini-mode .restart-btn,
+.mini-mode .pause-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  max-width: 200px;
+}
+
+.mini-mode .completion-message {
+  padding: 15px;
+}
+
+.mini-mode .completion-message h2 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.mini-mode .completion-message p {
+  font-size: 0.9rem;
 }
 
 .header {

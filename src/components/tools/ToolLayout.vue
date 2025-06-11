@@ -3,7 +3,6 @@ import { RouterLink } from 'vue-router'
 
 interface Props {
   title: string
-  description?: string
 }
 
 defineProps<Props>()
@@ -20,7 +19,6 @@ defineProps<Props>()
       
       <div class="tool-info">
         <h1 class="tool-title">{{ title }}</h1>
-        <p v-if="description" class="tool-description">{{ description }}</p>
       </div>
     </div>
 
@@ -83,15 +81,6 @@ defineProps<Props>()
   color: white;
 }
 
-.tool-description {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-  line-height: 1.5;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
 .tool-content {
   flex: 1;
   display: flex;
@@ -110,10 +99,6 @@ defineProps<Props>()
   
   .tool-title {
     font-size: 2rem;
-  }
-  
-  .tool-description {
-    font-size: 1rem;
   }
   
   .back-btn {
@@ -145,10 +130,6 @@ defineProps<Props>()
   .tool-title {
     font-size: 1.8rem;
     margin-bottom: 8px;
-  }
-  
-  .tool-description {
-    font-size: 0.95rem;
   }
 }
 </style> 

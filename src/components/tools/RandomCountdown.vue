@@ -166,10 +166,7 @@ const handleStart = async () => {
 </script>
 
 <template>
-  <ToolLayout 
-    title="Random Countdown" 
-    description="Set a random countdown timer between min and max seconds"
-  >
+  <ToolLayout title="Random Countdown">
     <div class="countdown-container">
       <div class="input-group">
         <input 

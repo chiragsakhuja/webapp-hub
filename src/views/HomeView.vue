@@ -6,7 +6,6 @@ import { RouterLink } from 'vue-router'
 interface Tool {
   id: string
   name: string
-  description: string
   icon: string
   path: string
   status: 'available' | 'coming-soon'
@@ -16,7 +15,6 @@ const tools = ref<Tool[]>([
   {
     id: 'ab-workout',
     name: 'Ab Workout Timer',
-    description: 'Guided 3-round ab workout with audio cues and progress tracking',
     icon: '💪',
     path: '/ab-workout',
     status: 'available'
@@ -24,7 +22,6 @@ const tools = ref<Tool[]>([
   {
     id: 'random-countdown',
     name: 'Random Countdown',
-    description: 'Set a random countdown timer between min and max seconds',
     icon: '⏰',
     path: '/random-countdown',
     status: 'available'
@@ -33,7 +30,6 @@ const tools = ref<Tool[]>([
   // {
   //   id: 'calculator',
   //   name: 'Calculator',
-  //   description: 'Simple calculator with basic operations',
   //   icon: '🧮',
   //   path: '/calculator',
   //   status: 'available'
@@ -79,7 +75,6 @@ onMounted(() => {
         >
           <div class="tool-icon">{{ tool.icon }}</div>
           <h3 class="tool-name">{{ tool.name }}</h3>
-          <p class="tool-description">{{ tool.description }}</p>
           <div v-if="tool.status === 'coming-soon'" class="coming-soon-badge">
             Coming Soon
           </div>
@@ -242,12 +237,6 @@ onMounted(() => {
   font-weight: 600;
   margin-bottom: 12px;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-}
-
-.tool-description {
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.5;
-  font-size: 1rem;
 }
 
 .coming-soon-badge {
