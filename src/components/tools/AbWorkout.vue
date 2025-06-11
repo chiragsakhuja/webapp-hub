@@ -33,7 +33,7 @@ onMounted(() => {
   
   // Mobile detection
   isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                   (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && window.innerWidth < 768)
+                   Boolean(navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && window.innerWidth < 768)
   
   // Preload audio files
   preloadAudio()
