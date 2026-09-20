@@ -26,6 +26,13 @@ const tools = ref<Tool[]>([
     path: '/random-countdown',
     status: 'available'
   },
+  {
+    id: 'pokemon-emerald-grinder',
+    name: 'Pokémon Emerald Grind Simulator',
+    icon: '🟢',
+    path: '/pokemon-emerald-grinder',
+    status: 'available'
+  },
   // Add your tools here - examples for demonstration structure
   // {
   //   id: 'calculator',
@@ -91,6 +98,8 @@ onMounted(() => {
 <style scoped>
 .home {
   width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
@@ -122,11 +131,14 @@ onMounted(() => {
 
 .tools-container {
   flex: 1;
+  min-height: 0;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   width: 100%;
   margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .empty-state {

@@ -18,6 +18,9 @@ index.html
               -> useWakeLock
            -> RandomCountdown
               -> Web Audio + timers + wake lock (local implementation)
+           -> PokemonEmeraldGrinder
+              -> emerald mechanics + Monte Carlo simulator
+              -> pinned, generated Emerald data
 ```
 
 The application is entirely client-side. Vue Router uses HTML5 history mode, and `public/_redirects` rewrites Cloudflare Pages requests to `index.html`. If this fallback is removed or narrowed, direct loads of tool routes will fail in production.
@@ -74,9 +77,25 @@ Important invariants:
 
 Stopping or unmounting must clear the countdown timeout and bell timeout, hide the bell, and release wake lock. AudioContext creation and wake-lock acquisition are best effort because support and permission vary by browser.
 
+## Pokémon Emerald grinder flow
+
+`PokemonEmeraldGrinder.vue` collects an exact Gen III Pokémon state and delegates all calculations to pure modules under `src/lib/emerald/`. Species and encounter data are generated from the pinned `pret/pokeemerald` decompilation and checked into `src/data/emerald.json`; the deployed app never calls an external API.
+
+```text
+Validated species + level/EXP + nature + IVs/EVs
+  -> build a weighted pool of real Land/Surf tables with distinct species mixes
+  -> choose one table per player level, favoring wild Pokémon 2–5 levels lower
+  -> sample the table's original slot weights and level ranges
+  -> apply Emerald EXP, EV-cap, and stat-rounding rules
+  -> repeat 2,000 seeded trials
+  -> report marginal P10/P50/P90 results and encounter summaries
+```
+
+Visible current stats are validation-only because Gen III may not recalculate newly earned EVs until a level-up or other refresh. Evolution, damage, party EXP sharing, held-item modifiers, Pokérus, and encounter-changing abilities are intentionally outside this tool's model.
+
 ## Styling and layout
 
-`App.vue` defines global styles and locks the document to the viewport. Tool and view styles are scoped locally. `ToolLayout.vue` constrains tool content to 800px while individual tools typically constrain themselves to 500px.
+`App.vue` defines global styles and locks the document to the viewport. Tool and view styles are scoped locally. `ToolLayout.vue` constrains tool content to 800px and supports opt-in internal scrolling for input-heavy tools, while simpler tools typically constrain themselves to 500px.
 
 The no-scroll design is a functional constraint, not just decoration. New content can become inaccessible if its height exceeds the viewport, especially on mobile browser chrome changes or landscape devices. Prefer compact responsive layouts and test with dynamic viewport height behavior.
 

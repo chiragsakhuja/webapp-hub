@@ -3,6 +3,7 @@ import { RouterLink } from 'vue-router'
 
 interface Props {
   title: string
+  scrollable?: boolean
 }
 
 defineProps<Props>()
@@ -23,7 +24,7 @@ defineProps<Props>()
     </div>
 
     <!-- Tool content -->
-    <div class="tool-content">
+    <div class="tool-content" :class="{ scrollable }">
       <slot />
     </div>
   </div>
@@ -31,6 +32,9 @@ defineProps<Props>()
 
 <style scoped>
 .tool-layout {
+  height: 100vh;
+  height: 100dvh;
+  height: -webkit-fill-available;
   min-height: 100vh;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
@@ -38,6 +42,7 @@ defineProps<Props>()
   flex-direction: column;
   padding: 20px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .tool-header {
@@ -83,12 +88,19 @@ defineProps<Props>()
 
 .tool-content {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
+}
+
+.tool-content.scrollable {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 /* Mobile responsive adjustments */
@@ -132,4 +144,4 @@ defineProps<Props>()
     margin-bottom: 8px;
   }
 }
-</style> 
+</style>

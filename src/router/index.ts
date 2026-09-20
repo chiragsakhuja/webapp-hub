@@ -20,7 +20,12 @@ const router = createRouter({
       name: 'random-countdown',
       component: () => import('../components/tools/RandomCountdown.vue'),
     },
-    
+    {
+      path: '/pokemon-emerald-grinder',
+      name: 'pokemon-emerald-grinder',
+      component: () => import('../components/tools/PokemonEmeraldGrinder.vue'),
+    },
+
     // Catch-all route for 404
     {
       path: '/:pathMatch(.*)*',

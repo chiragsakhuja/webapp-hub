@@ -10,6 +10,12 @@ A modern, responsive collection of simple single-page tools built with Vue.js an
 - 🛠️ **Extensible**: Easy to add new tools to the collection
 - 🚀 **Cloudflare Pages Ready**: Optimized for seamless deployment
 
+## Included Tools
+
+- Ab Workout Timer
+- Random Countdown
+- Pokémon Emerald Grind Simulator
+
 ## Design Theme
 
 The webapp features a beautiful gradient background and modern UI elements inspired by contemporary design trends:
