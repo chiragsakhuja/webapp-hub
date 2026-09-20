@@ -31,7 +31,16 @@ onUnmounted(() => {
 
 const initializeAudio = async () => {
   try {
-    audioContext.value = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const webkitWindow = window as typeof window & {
+      webkitAudioContext?: typeof AudioContext
+    }
+    const AudioContextConstructor = window.AudioContext ?? webkitWindow.webkitAudioContext
+
+    if (!AudioContextConstructor) {
+      throw new Error('Web Audio API is unavailable')
+    }
+
+    audioContext.value = new AudioContextConstructor()
   } catch (error) {
     console.warn('Audio context not supported:', error)
   }
@@ -348,4 +357,4 @@ const handleStart = async () => {
     margin-top: 16px;
   }
 }
-</style> 
+</style>

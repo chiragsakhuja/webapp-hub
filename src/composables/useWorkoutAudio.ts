@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import type { Exercise } from './useWorkoutTimer'
 
 export function useWorkoutAudio() {
@@ -138,4 +138,4 @@ export function useWorkoutAudio() {
     handlePause,
     handleReset
   }
-} 
+}

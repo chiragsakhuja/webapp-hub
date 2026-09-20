@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Exercise } from '@/composables/useWorkoutTimer'
-
 interface Props {
   exerciseName: string
   timeLeft: number
@@ -104,4 +102,4 @@ defineProps<Props>()
     margin-bottom: 15px;
   }
 }
-</style> 
+</style>
